@@ -1164,6 +1164,10 @@ Object.assign(H,{
  crsend(id){const c=co(id);if(!c)return;if(!(typeof CLOUD!='undefined'&&CLOUD))return msg('O envio de e-mail só funciona no sistema publicado.');msg('Enviando…');REPSEND(c,ym(1),true).then(r=>{msg(r.error?'Não foi possível enviar: '+r.error:'Relatório enviado para '+c.email+'.');ui()})}
 });
 
+/* v32: selo de versão + botão para forçar atualização */
+const BUILD='v32 · 16/11 11:40';
+{const b=document.createElement('button');b.id='verbtn';b.textContent='↻ '+BUILD;b.title='Toque para carregar a versão mais recente';b.style.cssText='position:fixed;right:10px;bottom:10px;z-index:90;background:#0f172a;color:#fff;border:0;border-radius:20px;padding:6px 12px;font:12px system-ui,sans-serif;opacity:.75;cursor:pointer';b.onclick=async()=>{try{if(window.caches){const k=await caches.keys();await Promise.all(k.map(x=>caches.delete(x)))}if(navigator.serviceWorker){const r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(x=>x.unregister()))}}catch(e){}location.href=location.href.split('#')[0].split('?')[0]+'?v='+Date.now()+(location.hash||'')};document.body.appendChild(b)}
+
 function cloudBoot(){ui();if(CLOUD)sb.auth.getSession().then(r=>{if(r.data&&r.data.session)afterAuth()})}
 
 feeRoll();S.cos.forEach(runRcr);cloudBoot();
