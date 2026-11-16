@@ -424,7 +424,7 @@ function ui(){const c0=cur();if(c0)runRcr(c0);save();const th0=(c0&&S.sess&&!(S.
  if(!s){$('#nav').innerHTML='';document.body.classList.add('lgn');$('#app').innerHTML=Login();return bind()}
  try{const nm0=s.staff?((STF()||{}).nm||''):s.role=='C'&&c0&&c0.owner&&c0.owner!='—'?c0.owner:'';if(nm0&&!s.chg)localStorage.setItem('gf_nm',nm0.trim().split(' ')[0])}catch(e){}
  if(s.chg){$('#nav').innerHTML='';$('#app').innerHTML=ChPw();return bind()}
- const c=cur(),ad=s.role=='A'&&!s.view,nv=ad?AT:[...(s.role=='A'?['← Painel ADM']:[]),...c.mods,...(s.role=='C'?['Usuários']:[])];
+ const c=cur(),ad=s.role=='A'&&!s.view,nv=ad?AT:[...(s.role=='A'?['← Painel ADM']:[]),...c.mods.filter(m=>m!='Chave Pix'),...(s.role=='C'||s.view?['Chave Pix']:[]),...(s.role=='C'?['Usuários']:[])];
  if(!nv.includes(V.tab)||V.tab[0]=='←'||(ad&&!can(V.tab)))V.tab=nv[s.role=='A'&&s.view?1:0];
  const lk=(t,l)=>`<a class="${t==V.tab?'a':''}" data-a="go|${t}">${l}</a>`;$('#nav').innerHTML=ad?AG.map(g=>[g[0],g[1].filter(can)]).filter(g=>g[1].length).map(g=>`<div class=sec>${g[0]}</div>`+g[1].map(t=>lk(t,AL[t])).join('')).join(''):M(nv,t=>lk(t,LBL[t]||t));
  $('#app').innerHTML=(s.role=='A'&&s.view?`<div class=card>ADM visualizando <b>${c.name}</b> (acesso autorizado, sem usar a senha do cliente). Dados de demonstração fictícios.</div>`:'')+(ad?Adm(V.tab):Mod(c,V.tab));bind()}
@@ -1058,7 +1058,7 @@ const COBC=c=>{const d=c.d,td=D(),lim=addM(td,0).slice(0,8)+'';const lm=new Date
  return `<div class=card style="border:2px solid #16a34a"><h2>📲 Cobrar no WhatsApp</h2><div class=mt>Parcelas atrasadas e que vencem nos próximos 7 dias. O botão abre o WhatsApp do cliente com a mensagem pronta e a sua chave Pix. Quando ele mandar o comprovante, clique em “Dar baixa”.</div>
  ${T(['Cliente','Cobrança','Valor','Vence','Situação','Ação'],ls.map(o=>{const k=d.cust.find(x=>x.id==o.r.c),has=k&&String(k.ph||'').replace(/\D/g,'');return `<tr><td>${k?'<b>'+X(k.n)+'</b>':'<b class=er>sem cliente</b>'}</td><td>${X(o.r.ds)} ${o.i+1}/${o.r.p.length}</td><td>${R(rem(o.p))}</td><td>${xd(o.p.due)}</td><td>${sit(o)}${o.p.cb?'<div class=mt style="margin:2px 0 0">cobrado em '+xd(o.p.cb)+'</div>':''}</td><td><div style="display:flex;flex-wrap:wrap;gap:6px;min-width:200px">${has?`<button class="b" data-a="cbwa|${o.r.id}:${o.i}">📲 ${o.p.cb?'Cobrar de novo':'Cobrar no WhatsApp'}</button>`:k?FI('cbph',k.id,'<input name=ph placeholder="WhatsApp do cliente" required style="min-width:150px">','Salvar nº'):'<span class=mt>Escolha o cliente na cobrança</span>'}<button class="s" data-a="cbbx|${o.r.id}:${o.i}" style="border-color:#16a34a;color:#166534">✔ Dar baixa (já pagou)</button></div></td></tr>`}))}
  <div class=row style="margin-top:8px">${B('cball|1',all?'Mostrar só os próximos 7 dias':'Ver todas as parcelas em aberto')}</div>
- <details style="margin-top:10px"><summary><b>Minha chave Pix (vai na mensagem)${d.pix?' ✔':''}</b></summary>${F('pixcfg',I('pix','Chave Pix (CPF, CNPJ, e-mail, celular ou aleatória)','text','value="'+E(d.pix||'')+'"')+I('pixt','Nome do titular','text','value="'+E(d.pixt||'')+'"'),'Salvar chave Pix')}</details></div>`};
+ ${d.pix?'':'<div class=mt><b class=er>Falta cadastrar a sua chave Pix.</b> '+B('go|Chave Pix','Cadastrar agora')+'</div>'}<details style="margin-top:10px"><summary><b>Minha chave Pix (vai na mensagem)${d.pix?' ✔':''}</b></summary>${F('pixcfg',I('pix','Chave Pix (CPF, CNPJ, e-mail, celular ou aleatória)','text','value="'+E(d.pix||'')+'"')+I('pixt','Nome do titular','text','value="'+E(d.pixt||'')+'"'),'Salvar chave Pix')}</details></div>`};
 /* ===== PROTÓTIPO v2: psicólogo (simples) — não publicado ===== */
 const PSIMODS=['Dashboard','Pacientes','Contas a Pagar','Agenda','Nota Fiscal','Solicitações','Impostos a Pagar','Documentos','Relatórios e DRE'];
 if(!MODS.includes('Pacientes'))MODS.push('Pacientes');
@@ -1116,6 +1116,14 @@ Object.assign(H,{
  cbwa(a){const c=cur(),d=c.d,[rid,i]=String(a).split(':'),r=d.rec.find(x=>x.id==rid),p=r&&r.p[+i];if(!p)return;const k=d.cust.find(x=>x.id==r.c)||{};if(!d.pix)msg('Dica: cadastre sua chave Pix para ela ir na mensagem.');const kind=d.psiOn?'psi':c.type=='servico'?'servico':'comercio',u=WAURL(k.ph,MSGC(c,kind,k.n,r.ds+' '+(+i+1)+'/'+r.p.length,rem(p),p.due));if(!u)return msg('Cadastre o WhatsApp do cliente.');p.cb=D();L('Cobrança enviada no WhatsApp: '+k.n);window.open(u,'_blank')},
  cbbx(a){const c=cur(),d=c.d,[rid,i]=String(a).split(':'),r=d.rec.find(x=>x.id==rid),p=r&&r.p[+i];if(!p||rem(p)<=0)return;r.pm=r.pm||'Pix';pay1(c,r,+i,rem(p));msg('Baixa feita. Entrou no seu caixa.')}
 });
+
+/* v29: aba Chave Pix (cada empresa cadastra a sua) */
+LBL['Chave Pix']='💳 Minha chave Pix';MD['Chave Pix']='Chave que vai nas mensagens de cobrança';
+const PIXC=c=>{const d=c.d,tp=d.pixtp||'';return `<div class=card style="border:2px solid #16a34a"><h2>💳 Minha chave Pix</h2><div class=mt>Cadastre aqui a chave da <b>sua empresa</b>. Ela vai automaticamente em toda mensagem de cobrança que você enviar pelo WhatsApp. Só você enxerga e altera.</div>
+ ${F('pixcfg2',`<label class=mt style="margin:0">Tipo da chave<select name=tp>${['CPF','CNPJ','E-mail','Celular','Chave aleatória'].map(x=>`<option${x==tp?' selected':''}>${x}</option>`).join('')}</select></label><label class=mt style="margin:0">Chave Pix<input name=pix required value="${E(d.pix||'')}" placeholder="Ex.: 00.000.000/0001-00"></label><label class=mt style="margin:0">Nome do titular (como aparece no banco)<input name=pixt required value="${E(d.pixt||'')}"></label>`,'Salvar chave Pix')}
+ ${d.pix?`<div class=card style="background:#f0fdf4"><b>Como vai aparecer na mensagem</b><div style="white-space:pre-wrap;margin-top:6px">💳 Segue a nossa chave Pix para facilitar:\n${E(d.pix)}${d.pixt?'\nTitular: '+E(d.pixt):''}</div></div>`:'<div class=mt><b class=er>Chave ainda não cadastrada.</b> Sem ela, a mensagem de cobrança sai sem o Pix.</div>'}</div>`};
+{const _M3=Mod;Mod=function(c,t){if(t=='Chave Pix')return PIXC(c);return _M3(c,t)}}
+Object.assign(H,{pixcfg2(f){const d=cur().d;d.pix=String(f.pix||'').trim();d.pixt=String(f.pixt||'').trim();d.pixtp=f.tp||'';msg('Chave Pix salva.')}});
 
 function cloudBoot(){ui();if(CLOUD)sb.auth.getSession().then(r=>{if(r.data&&r.data.session)afterAuth()})}
 
